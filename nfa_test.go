@@ -19,4 +19,11 @@ func TestRegToPost(t *testing.T) {
 	if r != "ab.c.d.e.fg.|" {
 		t.Errorf("RegToPost(`(((ab)c)d)e|fg`) failed. Got %s", r)
 	}
+	r, err = RegToPost("((abc*)(a+))c?")
+	if err != nil {
+		t.Errorf("RegToPost(`((abc*)(a+))c?`) failed. error:%s", err.Error())
+	}
+	if r != "ab.c*.a+.c?." {
+		t.Errorf("RegToPost(`((abc*)(a+))c?`) failed. Got %s", r)
+	}
 }

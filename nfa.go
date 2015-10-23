@@ -7,7 +7,7 @@ package owl
 
 import (
 	"errors"
-	_ "fmt"
+	"fmt"
 )
 
 // RegToPost convert a regular expression to a postfix expression.
@@ -21,7 +21,21 @@ func RegToPost(reg string) (string, error) {
 	var NumOfParallel = 0
 	p := []Paren{}
 	pIndex := 0
+	addDot := func() {
+		NumOfOperand--
+		for ; NumOfOperand > 0; NumOfOperand-- {
+			post += "."
+		}
+	}
+	addVerticalBar := func() {
+		for ; NumOfParallel > 0; NumOfParallel-- {
+			post += "|"
+		}
+	}
 	for _, r := range reg {
+		if NumOfOperand > 2 {
+			fmt.Println("oh my god!")
+		}
 		switch r {
 		case '(':
 			if NumOfOperand > 1 {
@@ -36,30 +50,14 @@ func RegToPost(reg string) (string, error) {
 			if NumOfOperand == 0 {
 				return "", errors.New("Wrong exp")
 			}
-			for {
-				NumOfOperand--
-				if NumOfOperand > 0 {
-					post += "."
-				} else {
-					break
-				}
-			}
+			addDot()
 			NumOfParallel++
 		case ')':
 			if pIndex == 0 || NumOfOperand == 0 {
 				return "", errors.New("Wrong exp")
 			}
-			for {
-				NumOfOperand--
-				if NumOfOperand > 0 {
-					post += "."
-				} else {
-					break
-				}
-			}
-			for ; NumOfParallel > 0; NumOfParallel-- {
-				post += "|"
-			}
+			addDot()
+			addVerticalBar()
 			pIndex--
 			NumOfOperand = p[pIndex].NumOfOperand + 1
 			NumOfParallel = p[pIndex].NumOfParallel
@@ -85,16 +83,10 @@ func RegToPost(reg string) (string, error) {
 	if pIndex != 0 {
 		return "", errors.New("Wrong exp")
 	}
-	for {
-		NumOfOperand--
-		if NumOfOperand > 0 {
-			post += "."
-		} else {
-			break
-		}
-	}
-	for ; NumOfParallel > 0; NumOfParallel-- {
-		post += "|"
-	}
+	addDot()
+	addVerticalBar()
 	return post, nil
+}
+
+type State struct {
 }
