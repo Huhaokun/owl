@@ -88,5 +88,40 @@ func RegToPost(reg string) (string, error) {
 	return post, nil
 }
 
+const (
+	Match = 256
+	Split = 257
+)
+
 type State struct {
+	content  interface{}
+	out1     *State
+	out2     *State
+	lastlist int
+}
+
+var NumState int
+
+func NewState(c interface{}, out1 *State, out2 *State) *State {
+	NumState++
+	s = &State{c, out1, out2}
+	return s
+}
+
+type Fragment struct {
+	start *State
+	out   []*State
+}
+
+func NewFragment(start *State, out []*State) *Fragment {
+	f = &Fragment{start, out}
+}
+func Patch(out []*State, s *State) {
+	length := len(out)
+	for i := 0; i < length; i++ {
+		out[i] = s
+	}
+}
+func PostToNfa(postfix string) *State {
+
 }
