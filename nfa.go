@@ -6,8 +6,11 @@ Feel free to contact the author 18817874087@163.com if you have any question.
 package owl
 
 import (
+	"container/list"
 	"errors"
 	"fmt"
+
+	"owl/utils"
 )
 
 // RegToPost convert a regular expression to a postfix expression.
@@ -123,5 +126,46 @@ func Patch(out []*State, s *State) {
 	}
 }
 func PostToNfa(postfix string) *State {
-
+	MatchState := State{Match, nil, nil}
+	stack := utils.NewStack()
+	if postfix == "" {
+		return nil
+	}
+	for _, p := range postfix {
+		switch p {
+		default:
+			s := NewState(p, nil, nil)
+			stack.Push(NewFragment(s, []*State{}))
+		case '.': // catenate
+			frag2 := stack.Pop()
+			frag1 := stack.Pop()
+			Patch(frag1.out, frag2.start)
+			stack.Push(NewFragment(frag1.start, frag2.out))
+		case '|': // alternate
+			frag2 := stack.Pop()
+			frag1 := stack.Pop()
+			s := NewState(Split, frag1.start, frag2.start)
+			stack.Push(NewFragment(s, append(frag1.out, frag2.out...)))
+		case '?': // zero or one
+			frag := stack.Pop()
+			s := NewState(Split, frag.start, nil)
+			stack.Push(NewFragment(s, append(frag.out, s.out2)))
+		case '*': // zero or more
+			frag := stack.Pop()
+			s := NewState(Split, frag.start, nil)
+			Patch(frag.out, s)
+			stack.Push(NewFragment(s, []*State{s.out2}))
+		case '+': // one or more
+			frag := stack.Pop()
+			s := NewState(Split, frag.start, nil)
+			Patch(frag.out, s)
+			stack.Push(NewFragment(frag.start, []*State{s.out2}))
+		}
+	}
+	final_frag := stack.Pop()
+	if stack.Empty() {
+		return nil
+	}
+	Patch(final_frag.out, &MatchState)
+	return final_frag.start
 }
